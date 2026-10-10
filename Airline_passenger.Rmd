@@ -1,0 +1,79 @@
+---
+title: "Assignment 5"
+author: "Ezekiel Iwarimie"
+date: "2026-10-10"
+output: html_document
+---
+
+## Introduction
+
+This report uses the monthly airline passenger dataset to perform time-series decomposition. The goal is to separate the observed passenger numbers into trend, seasonal, and irregular components.
+
+## Load and Prepare the Data
+
+```{r}
+library(fpp2)
+airline <- read.csv("~/Downloads/airline-passengers.csv")
+
+head(airline)
+str(airline)
+
+# Convert passenger counts into a monthly time-series.
+passenger_ts <- ts(
+  airline$Passengers,
+  start = c(1949, 1),
+  frequency = 12)
+
+plot(
+  passenger_ts,
+  main = "Monthly Airline Passengers (1949–1960)",
+  xlab = "Year",
+  ylab = "Number of Passengers")
+```
+
+The data contains monthly passenger counts from 1949 through 1960. The original time-series plot can help identify the overall direction of the data and whether the size of its fluctuations changes over time.
+
+## Decomposition Model
+
+The multiplicative decomposition model is: $Y_t = T_t * C_t * S_t * I_t$
+
+where \(Y_t\) is the observed value, \(T_t\) is the trend-cycle component, \(S_t\) is the seasonal component, and \(I_t\) is the irregular component.
+
+A multiplicative model is a reasonable choice to examine because the seasonal fluctuations appear to become larger as the number of passengers increases.
+
+```{r decomposition, fig.width=9, fig.height=7}
+airline_decomp <- decompose(passenger_ts, type = "multiplicative")
+plot(airline_decomp)
+```
+
+## Interpret the Components
+
+### Trend
+
+The trend-cycle component shows the long-term movement in passenger numbers. In this dataset, passenger traffic generally increases over the years, indicating growth in airline travel.
+
+### Seasonal Pattern
+
+The seasonal component represents the pattern that repeats during the year. The decomposition can help show which months tend to have relatively higher or lower passenger numbers. Because this is a multiplicative model, seasonal effects are expressed as relative factors around 1.
+
+### Irregular Component
+
+The irregular component represents variation left over after estimating the trend-cycle and seasonal components. It captures short-term movements that are not explained by those two components.
+
+## Seasonally Adjusted Series
+
+Seasonal adjustment removes the estimated seasonal effect from the original series. For a multiplicative decomposition, the seasonally adjusted series is calculated by dividing the observed series by the seasonal component.
+
+```{r}
+adjusted_passengers <- seasadj(airline_decomp)
+
+plot(
+  adjusted_passengers,
+  main = "Seasonally Adjusted Airline Passengers",
+  xlab = "Year",
+  ylab = "Seasonally Adjusted Passengers"
+)
+```
+
+## Conclusion
+The decomposition shows that airline passenger numbers increased over time and followed seasonal patterns each year. The irregular component shows changes that are not explained by the trend or seasonal patterns. Overall, decomposition helps us better understand changes in airline passenger numbers.
